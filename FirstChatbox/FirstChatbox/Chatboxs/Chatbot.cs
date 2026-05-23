@@ -1,16 +1,12 @@
-﻿using OpenAI.Chat;
+﻿using Microsoft.Extensions.AI;
 using System.Text;
 
-namespace FirstChatbox;
+namespace FirstChatbox.Chatboxs;
 
-internal class ChatbotOpenAI
+internal class Chatbot
 {
-    internal static async Task Run()
+    internal static async Task Run(IChatClient client)
     {
-        var model = "gpt-5.4-nano-2026-03-17";
-        var key = Environment.GetEnvironmentVariable("OPENAI_KEY");
-        var client = new ChatClient(model, key);
-
         Console.WriteLine("IA: Hi! You can write your questions or press ENTER to exit");
         Console.WriteLine();
 
@@ -28,13 +24,7 @@ internal class ChatbotOpenAI
             The answers must be in plain-text, do not use formats such as markdown.
             """;
 
-        var systemPromptPython = """
-            You are an expert in Python
-            You must respond in american english and give examples.
-            The answers must be in plain-text, do not use formats such as markdown.
-            """;
-
-        chatHistory.Add(new SystemChatMessage(systemPromptCsharp));
+        chatHistory.Add(new ChatMessage(role: ChatRole.System, systemPromptCsharp));
 
         while (true)
         {
@@ -50,25 +40,21 @@ internal class ChatbotOpenAI
                 break;
             }
 
-            chatHistory.Add(new UserChatMessage(userInput));
+            chatHistory.Add(new ChatMessage(role: ChatRole.User, userInput));
 
             Console.WriteLine();
-            Console.Write($"{model} IA:");
+            Console.Write($"IA:");
 
-            var stream = client.CompleteChatStreamingAsync(chatHistory);
-
-            await foreach (var message in stream)
+            await foreach (var fragment in client.GetStreamingResponseAsync(chatHistory))
             {
-                foreach (var content in message.ContentUpdate)
-                {
-                    sb.Append(content.Text);
-                    Console.Write(content.Text);
-                }
+                sb.Append(fragment.Text);
+                Console.Write(fragment.Text);
             }
 
-            chatHistory.Add(new AssistantChatMessage(sb.ToString()));
+            chatHistory.Add(new ChatMessage(role: ChatRole.Assistant, sb.ToString()));
 
             Console.WriteLine();
         }
+
     }
 }

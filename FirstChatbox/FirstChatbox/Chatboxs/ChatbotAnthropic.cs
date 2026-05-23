@@ -4,7 +4,7 @@ using Anthropic.Models.Messages;
 using System.Text;
 using System.Text.Json;
 
-namespace FirstChatbox;
+namespace FirstChatbox.Chatboxs;
 
 internal class ChatbotAnthropic
 {
@@ -106,13 +106,13 @@ internal class ChatbotAnthropic
                 return null;
             }
 
-            if (!root.TryGetProperty("type", out var deltaTypeProp) ||
-               typeProp.GetString() != "text_delta")
+            if (!deltaProp.TryGetProperty("type", out var deltaTypeProp) ||
+               deltaTypeProp.GetString() != "text_delta")
             {
                 return null;
             }
 
-            if (!root.TryGetProperty("text", out var textProp))
+            if (!deltaProp.TryGetProperty("text", out var textProp))
             {
                 return null;
             }
