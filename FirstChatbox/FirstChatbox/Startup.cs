@@ -1,7 +1,9 @@
 ﻿using Anthropic;
+using FirstChatbox.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace FirstChatbox;
 
@@ -11,6 +13,15 @@ internal static class Startup
     {
         var OpenAIKey = Environment.GetEnvironmentVariable("OPENAI_KEY");
         var AnthropicKey = Environment.GetEnvironmentVariable("ANTHROPIC_KEY");
+
+        //builder.Services.AddTransient<IWeatherService, WeatherServiceFake>();
+        builder.Services.AddTransient<IWeatherService, OpenWeatherService>();
+        builder.Services.AddTransient<ConditionsEvaluatorService>();
+        builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.None);
+        builder.Services.AddHttpClient();
+
+        builder.Services.AddTransient<SendFalseEmailService>();
+        builder.Services.AddTransient<GetFalseEmailService>();
 
         builder.Services.AddSingleton<IChatClient>(sp =>
         {
@@ -29,21 +40,16 @@ internal static class Startup
             {
                 o.MaxOutputTokens = 2000;
                 o.Temperature = 0.7f;
+                o.Tools = [.. Tools.Tools.GetTools(sp)];
             })
-            //.Use(async (messages, options, next, cancellationToken) =>
-            //{
-            //    Console.WriteLine();
-            //    Console.ForegroundColor = ConsoleColor.Green;
-            //    Console.WriteLine("Before calling the model...");
-            //    Console.ResetColor();
-
-            //    await next(messages, options, cancellationToken);
-
-            //    Console.WriteLine();
-            //    Console.ForegroundColor = ConsoleColor.Green;
-            //    Console.WriteLine("After calling the model...");
-            //    Console.ResetColor();
-            //})
+            .UseFunctionInvocation(null, c =>
+            {
+                c.IncludeDetailedErrors = true;
+            })
+                .Use(async (messages, options, next, cancellationToken) =>
+                {
+                    await next(messages, options, cancellationToken);
+                })
             .Build(sp);
             ;
         });

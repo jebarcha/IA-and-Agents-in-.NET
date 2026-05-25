@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.AI;
-using System.Text;
 
 namespace FirstChatbox.Chatboxs;
 
@@ -16,6 +15,8 @@ internal class Chatbot
             You are an assitant that responds general questions.
             You must respond in american english.
             The answers must be in plain-text, do not use formats such markdown.
+
+            if a tool fail, read the error message in order to see if you can fix it making an adjustment. Communicate any fix you are going to make to the user.
             """;
 
         var systemPromptCsharp = """
@@ -24,12 +25,10 @@ internal class Chatbot
             The answers must be in plain-text, do not use formats such as markdown.
             """;
 
-        chatHistory.Add(new ChatMessage(role: ChatRole.System, systemPromptCsharp));
+        chatHistory.Add(new ChatMessage(role: ChatRole.System, systemPromptGeneral));
 
         while (true)
         {
-            var sb = new StringBuilder();
-
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.Write("You: ");
             var userInput = Console.ReadLine();
@@ -45,16 +44,77 @@ internal class Chatbot
             Console.WriteLine();
             Console.Write($"IA:");
 
-            await foreach (var fragment in client.GetStreamingResponseAsync(chatHistory))
+            while (true)
             {
-                sb.Append(fragment.Text);
-                Console.Write(fragment.Text);
+                var updates = new List<ChatResponseUpdate>();
+
+
+                await foreach (var responseUpdate in client.GetStreamingResponseAsync(chatHistory))
+                {
+                    updates.Add(responseUpdate);
+
+                    foreach (var content in responseUpdate.Contents)
+                    {
+                        if (content is TextContent textContent)
+                        {
+                            Console.Write(textContent);
+                        }
+                    }
+                }
+
+                var response = updates.ToChatResponse();
+                chatHistory.AddMessages(response);
+
+                var approvalRequest = response.Messages
+                                    .SelectMany(m => m.Contents)
+                                    .OfType<ToolApprovalRequestContent>()
+                                    .FirstOrDefault();
+
+                if (approvalRequest is not null)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("IA wants to execute a sensitive action");
+
+                    if (approvalRequest.ToolCall is FunctionCallContent functionCall)
+                    {
+                        Console.WriteLine($"Tool: {ConvertFunctionName(functionCall.Name)}");
+
+                        if (functionCall.Arguments is not null)
+                        {
+                            foreach (var arg in functionCall.Arguments)
+                            {
+                                Console.WriteLine($"{arg.Key}: {arg.Value}");
+                            }
+                        }
+                    }
+
+                    Console.ResetColor();
+                    Console.WriteLine("Do you want to approve this action? (y/n): ");
+                    var approved = Console.ReadLine()?.Trim().ToLower() == "y";
+                    var approvedResponse = approvalRequest.CreateResponse(approved);
+
+                    chatHistory.Add(new ChatMessage(ChatRole.User, [approvedResponse]));
+
+                    Console.WriteLine();
+                    Console.Write("IA: ");
+                    continue;
+                }
+
+                Console.WriteLine();
+                Console.WriteLine();
+                break;
             }
-
-            chatHistory.Add(new ChatMessage(role: ChatRole.Assistant, sb.ToString()));
-
-            Console.WriteLine();
         }
+    }
 
+    private static string ConvertFunctionName(string name)
+    {
+        return name switch
+        {
+            "SendEmail" => "Send email",
+            _ => name
+        };
     }
 }
