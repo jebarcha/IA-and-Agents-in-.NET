@@ -12,7 +12,7 @@ internal class Chatbot
         var chatHistory = new List<ChatMessage>();
 
         var systemPromptGeneral = """
-            You are an assitant that responds general questions.
+            You are an assistant that responds general questions.
             You must respond in american english.
             The answers must be in plain-text, do not use formats such markdown.
 

@@ -1,4 +1,4 @@
-﻿.chat-wrapper {
+﻿﻿.chat-wrapper {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 5rem);
@@ -75,4 +75,9 @@
     padding: 1rem;
     border-top: 1px solid #d0d7de;
     background-color: #fff;
+}
+
+.selector-modelo {
+    width: 220px;
+    flex-shrink: 0;
 }

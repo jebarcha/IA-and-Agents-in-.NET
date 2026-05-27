@@ -2,11 +2,13 @@
 
 namespace BlazorIA.Servicios.Chatbots
 {
-    public class ChatbotFalso: IChatbot
+    public class ChatbotFalso : IChatbot
     {
         public List<MensajeChatUI> Conversacion { get; } = [];
 
         public bool EstaProcesando => false;
+
+        public SolicitudAprobacionUI? AprobacionPendiente => throw new NotImplementedException();
 
         public event Action? OnChange;
 
@@ -31,5 +33,8 @@ namespace BlazorIA.Servicios.Chatbots
             return Task.CompletedTask;
         }
 
+        public void SetearModelo(string modelo)
+        {
+        }
     }
 }
