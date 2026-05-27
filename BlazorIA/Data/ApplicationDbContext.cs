@@ -1,7 +1,7 @@
-﻿using BlazorIA.Entidades;
+﻿using BlazorIA.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlazorIA.Datos
+namespace BlazorIA.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -17,51 +17,51 @@ namespace BlazorIA.Datos
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Persona>().HasData(
-            new Persona
+            modelBuilder.Entity<Person>().HasData(
+            new Person
             {
                 Id = 1,
-                Nombre = "Felipe Gavilán",
+                Name = "Felipe Gavilán",
                 Email = "felipe.gavilan@example.com",
-                Salario = 45000m,
-                Activo = true
+                Salary = 45000m,
+                Active = true
             },
-            new Persona
+            new Person
             {
                 Id = 2,
-                Nombre = "María López",
+                Name = "María López",
                 Email = "maria.lopez@example.com",
-                Salario = 52000m,
-                Activo = true
+                Salary = 52000m,
+                Active = true
             },
-            new Persona
+            new Person
             {
                 Id = 3,
-                Nombre = "Carlos Rodríguez",
+                Name = "Carlos Rodríguez",
                 Email = "carlos.rodriguez@example.com",
-                Salario = 61000m,
-                Activo = false
+                Salary = 61000m,
+                Active = false
             },
-            new Persona
+            new Person
             {
                 Id = 4,
-                Nombre = "Ana Martínez",
+                Name = "Ana Martínez",
                 Email = "ana.martinez@example.com",
-                Salario = 48000m,
-                Activo = false
+                Salary = 48000m,
+                Active = false
             },
-            new Persona
+            new Person
             {
                 Id = 5,
-                Nombre = "Luis Gómez",
+                Name = "Luis Gómez",
                 Email = "luis.gomez@example.com",
-                Salario = 55000m,
-                Activo = true
+                Salary = 55000m,
+                Active = true
             }
         );
 
         }
 
-        public DbSet<Persona> Personas { get; set; }
+        public DbSet<Person> People { get; set; }
     }
 }

@@ -5,13 +5,13 @@
     min-height: 0;
 }
 
-.chat-titulo {
+.chat-title {
     margin: 0;
     padding: 1rem 1rem 0 1rem;
     flex-shrink: 0;
 }
 
-.chat-mensajes {
+.chat-messages {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -21,7 +21,7 @@
 
 
 
-.mensaje {
+.message {
     margin-bottom: 1rem;
     padding: .75rem 1rem;
     border-radius: 10px;
@@ -29,32 +29,32 @@
     white-space: pre-wrap;
 }
 
-    .mensaje.user {
+    .message.user {
         background-color: #e7f1ff;
         margin-left: auto;
     }
 
-    .mensaje.assistant {
+    .message.assistant {
         background-color: #f3f4f6;
         margin-right: auto;
     }
 
-    .mensaje.system {
+    .message.system {
         background-color: #fff8db;
         margin-right: auto;
         border: 1px solid #f0d98a;
     }
 
-.mensaje-header {
+.message-header {
     font-weight: bold;
     margin-bottom: .35rem;
 }
 
-.mensaje-body {
+.message-body {
     line-height: 1.5;
 }
 
-.aprobacion-tool {
+.approval-tool {
     border: 1px solid #f0c36d;
     background-color: #fff8e8;
     border-radius: 10px;
@@ -62,13 +62,13 @@
     margin-top: 1rem;
 }
 
-.acciones-aprobacion {
+.approval-actions {
     display: flex;
     gap: .5rem;
     margin-top: 1rem;
 }
 
-.entrada-chat {
+.chat-input {
     flex-shrink: 0;
     display: flex;
     gap: .5rem;
@@ -77,7 +77,7 @@
     background-color: #fff;
 }
 
-.selector-modelo {
+.model-selector {
     width: 220px;
     flex-shrink: 0;
 }

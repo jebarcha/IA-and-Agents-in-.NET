@@ -1,7 +1,7 @@
 using BlazorIA.Components;
-using BlazorIA.Datos;
-using BlazorIA.Servicios;
-using BlazorIA.Servicios.Chatbots;
+using BlazorIA.Data;
+using BlazorIA.Services;
+using BlazorIA.Services.Chatbots;
 using BlazorIA.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
@@ -12,19 +12,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddDbContextFactory<ApplicationDbContext>(opciones =>
-    opciones.UseSqlite("Data Source=midb.db"));
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+    options.UseSqlite("Data Source=midb.db"));
 
 
-builder.Services.AddScoped<IServicioPersonas, ServicioPersonas>();
+builder.Services.AddScoped<IPersonService, PersonService>();
 
-builder.Services.AddScoped<IChatbot, ChatbotReal>();
+builder.Services.AddScoped<IChatbot, RealChatbot>();
 
 
-builder.Services.AddTransient<IServicioClima, ServicioClimaOpenWeather>();
-builder.Services.AddTransient<ServicioEvaluaCondiciones>();
-builder.Services.AddTransient<ServicioEnviarCorreoFalso>();
-builder.Services.AddTransient<ServicioObtenerCorreoFalso>();
+builder.Services.AddTransient<IWeatherService, OpenWeatherService>();
+builder.Services.AddTransient<ConditionEvaluatorService>();
+builder.Services.AddTransient<FakeSendEmailService>();
+builder.Services.AddTransient<FakeGetEmailService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddTransient<IChatClientFactory, ChatClientFactory>();

@@ -1,15 +1,15 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace BlazorIA.Servicios
+namespace BlazorIA.Services
 {
-    internal class ServicioClimaOpenWeather(HttpClient httpClient, IConfiguration configuration) : IServicioClima
+    internal class OpenWeatherService(HttpClient httpClient, IConfiguration configuration) : IWeatherService
     {
-        public async Task<string> ObtenerClima(string ciudad)
+        public async Task<string> GetWeather(string city)
         {
             var apiKey = configuration.GetValue<string>("WEATHER_API_KEY");
-            var ciudadURL = Uri.EscapeDataString(ciudad);
-            //var url = $"http://api.weatherapi.com/v1/current.json?key={apiKey}&q={ciudadURL}&aqi=no&lang=es";
-            var url = $"http://api.weatherapi.com/v1/current.json?key={apiKey}&q={ciudadURL}&aqi=no";
+            var cityUrl = Uri.EscapeDataString(city);
+            //var url = $"http://api.weatherapi.com/v1/current.json?key={apiKey}&q={cityUrl}&aqi=no&lang=es";
+            var url = $"http://api.weatherapi.com/v1/current.json?key={apiKey}&q={cityUrl}&aqi=no";
             var weatherResponse = await httpClient.GetFromJsonAsync<WeatherResponse>(url);
             return weatherResponse!.Current.Condition.Text;
         }

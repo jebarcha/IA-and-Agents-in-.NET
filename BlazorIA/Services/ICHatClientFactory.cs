@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.AI;
 
-namespace BlazorIA.Servicios
+namespace BlazorIA.Services
 {
     public interface IChatClientFactory
     {
-        IChatClient Crear(string modelo);
+        IChatClient Create(string model);
     }
 }

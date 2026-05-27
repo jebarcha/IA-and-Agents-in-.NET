@@ -1,50 +1,50 @@
-﻿@page "/"
+@page "/"
 @using BlazorIA.DTOs
-@using BlazorIA.Servicios.Chatbots
+@using BlazorIA.Services.Chatbots
 @using BlazorIA.Utils
 @implements IDisposable
 @inject IChatbot ChatSession
 @inject IJSRuntime JS
 
 <div class="chat-wrapper">
-    <h3 class="chat-titulo">Chat con IA</h3>
+    <h3 class="chat-title">Chat with AI</h3>
 
-    <div class="chat-mensajes" @ref="contenedorMensajes">
-        @foreach (var mensaje in ChatSession.Conversacion)
+    <div class="chat-messages" @ref="messagesContainer">
+        @foreach (var message in ChatSession.Conversation)
         {
-            <div class="mensaje @ObtenerClaseCSS(mensaje.Rol)">
-                <div class="mensaje-header">@ObtenerEtiqueta(mensaje.Rol)</div>
-                <div class="mensaje-body">@mensaje.Texto</div>
+            <div class="message @GetCSSClass(message.Role)">
+                <div class="message-header">@GetLabel(message.Role)</div>
+                <div class="message-body">@message.Text</div>
             </div>
         }
 
-        @if (ChatSession.AprobacionPendiente is not null)
+        @if (ChatSession.PendingApproval is not null)
         {
-            <div class="aprobacion-tool">
-                <h4>La IA desea ejecutar una acción sensible</h4>
-                <p><strong>Tool:</strong> @ChatSession.AprobacionPendiente.NombreTool</p>
+            <div class="approval-tool">
+                <h4>AI wants to execute a sensitive action</h4>
+                <p><strong>Tool:</strong> @ChatSession.PendingApproval.ToolName</p>
 
-                @if (ChatSession.AprobacionPendiente.Argumentos.Count > 0)
+                @if (ChatSession.PendingApproval.Arguments.Count > 0)
                 {
                     <ul>
-                        @foreach (var argumento in ChatSession.AprobacionPendiente.Argumentos)
+                        @foreach (var argument in ChatSession.PendingApproval.Arguments)
                         {
-                            <li><strong>@argumento.Key:</strong> @argumento.Value</li>
+                            <li><strong>@argument.Key:</strong> @argument.Value</li>
                         }
                     </ul>
                 }
 
-                <div class="acciones-aprobacion">
+                <div class="approval-actions">
                     <button class="btn btn-success"
-                            @onclick="Aprobar"
-                            disabled="@ChatSession.EstaProcesando">
-                        Aprobar
+                            @onclick="Approve"
+                            disabled="@ChatSession.IsProcessing">
+                        Approve
                     </button>
 
                     <button class="btn btn-danger"
-                            @onclick="Rechazar"
-                            disabled="@ChatSession.EstaProcesando">
-                        Rechazar
+                            @onclick="Reject"
+                            disabled="@ChatSession.IsProcessing">
+                        Reject
                     </button>
                 </div>
             </div>
@@ -52,14 +52,14 @@
 
     </div>
 
-    <EditForm Model="modelo" OnValidSubmit="Enviar">
-        <div class="entrada-chat">
+    <EditForm Model="model" OnValidSubmit="Send">
+        <div class="chat-input">
 
-            <select class="form-select selector-modelo"
-                    @bind="modeloSeleccionado"
-                    @bind:after="OnCambioModelo"
-                    disabled="@(ChatSession.EstaProcesando || ChatSession.AprobacionPendiente is not null)">
-                @foreach (var item in modelosDisponibles)
+            <select class="form-select model-selector"
+                    @bind="selectedModel"
+                    @bind:after="OnModelChange"
+                    disabled="@(ChatSession.IsProcessing || ChatSession.PendingApproval is not null)">
+                @foreach (var item in availableModels)
                 {
                     <option value="@item">@item</option>
                 }
@@ -67,21 +67,21 @@
 
 
             <input class="form-control"
-                   @bind="modelo.Texto"
+                   @bind="model.Text"
                    @bind:event="oninput"
-                   placeholder="Escribe tu mensaje..." />
+                   placeholder="Type your message..." />
 
             <button type="submit"
                     class="btn btn-primary"
-                    disabled="@DeshabilitarEnvio">
-                Enviar
+                    disabled="@DisableSend">
+                Send
             </button>
 
             <button type="button"
                     class="btn btn-outline-secondary"
-                    @onclick="Cancelar"
-                    disabled="@(!ChatSession.EstaProcesando)">
-                Cancelar
+                    @onclick="Cancel"
+                    disabled="@(!ChatSession.IsProcessing)">
+                Cancel
             </button>
         </div>
     </EditForm>
@@ -89,101 +89,101 @@
 
 
 @code {
-    private readonly ChatInputModel modelo = new();
-    private ElementReference contenedorMensajes;
-    private bool necesitaScroll;
+    private readonly ChatInputModel model = new();
+    private ElementReference messagesContainer;
+    private bool needsScroll;
 
-    private readonly List<string> modelosDisponibles = ModelosIA.ObtenerModelosDisponibles().ToList();
-    private string modeloSeleccionado = ModelosIA.ObtenerModeloPorDefecto;
+    private readonly List<string> availableModels = AIModels.GetAvailableModels().ToList();
+    private string selectedModel = AIModels.DefaultModel;
 
-    private void OnCambioModelo()
+    private void OnModelChange()
     {
-        ChatSession.SetearModelo(modeloSeleccionado);
+        ChatSession.SetModel(selectedModel);
     }
 
-    private bool DeshabilitarEnvio =>
-    ChatSession.EstaProcesando ||
-    ChatSession.AprobacionPendiente is not null ||
-    string.IsNullOrWhiteSpace(modelo.Texto);
+    private bool DisableSend =>
+    ChatSession.IsProcessing ||
+    ChatSession.PendingApproval is not null ||
+    string.IsNullOrWhiteSpace(model.Text);
 
     protected override void OnInitialized()
     {
-        ChatSession.OnChange += ManejarCambioChat;
+        ChatSession.OnChange += HandleChatChange;
     }
 
-    private void ManejarCambioChat()
+    private void HandleChatChange()
     {
-        necesitaScroll = true;
+        needsScroll = true;
         InvokeAsync(StateHasChanged);
     }
 
-    private async Task Aprobar()
+    private async Task Approve()
     {
-        necesitaScroll = true;
-        await ChatSession.ResolverAprobacionAsync(true);
+        needsScroll = true;
+        await ChatSession.ResolveApprovalAsync(true);
     }
 
-    private async Task Rechazar()
+    private async Task Reject()
     {
-        necesitaScroll = true;
-        await ChatSession.ResolverAprobacionAsync(false);
+        needsScroll = true;
+        await ChatSession.ResolveApprovalAsync(false);
     }
 
-    private async Task Enviar()
+    private async Task Send()
     {
-        var texto = modelo.Texto?.Trim();
+        var text = model.Text?.Trim();
 
-        if (string.IsNullOrWhiteSpace(texto))
+        if (string.IsNullOrWhiteSpace(text))
         {
             return;
         }
 
-        modelo.Texto = string.Empty;
-        necesitaScroll = true;
+        model.Text = string.Empty;
+        needsScroll = true;
 
-        await ChatSession.EnviarMensajeAsync(texto);
+        await ChatSession.SendMessageAsync(text);
     }
 
-    private Task Cancelar()
+    private Task Cancel()
     {
-        ChatSession.CancelarRespuestaActual();
+        ChatSession.CancelCurrentResponse();
         return Task.CompletedTask;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (necesitaScroll)
+        if (needsScroll)
         {
-            necesitaScroll = false;
-            await JS.InvokeVoidAsync("chatScroll.scrollToBottom", contenedorMensajes);
+            needsScroll = false;
+            await JS.InvokeVoidAsync("chatScroll.scrollToBottom", messagesContainer);
         }
     }
 
-    private static string ObtenerEtiqueta(RolMensaje rol) => rol switch
+    private static string GetLabel(MessageRole role) => role switch
     {
-        RolMensaje.Usuario => "Tú",
-        RolMensaje.IA => "IA",
-        RolMensaje.Sistema => "Sistema",
-        _ => rol.ToString()
+        MessageRole.User => "You",
+        MessageRole.AI => "AI",
+        MessageRole.System => "System",
+        _ => role.ToString()
     };
 
-    private static string ObtenerClaseCSS(RolMensaje rol) => rol switch
+    private static string GetCSSClass(MessageRole role) => role switch
     {
-        RolMensaje.Usuario => "user",
-        RolMensaje.IA => "assistant",
-        RolMensaje.Sistema => "system",
-        _ => rol.ToString()
+        MessageRole.User => "user",
+        MessageRole.AI => "assistant",
+        MessageRole.System => "system",
+        _ => role.ToString()
     };
 
     public void Dispose()
     {
-        ChatSession.OnChange -= ManejarCambioChat;
+        ChatSession.OnChange -= HandleChatChange;
     }
 
 
     private class ChatInputModel
     {
-        public string Texto { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
     }
 
 
