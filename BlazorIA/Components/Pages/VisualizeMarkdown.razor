@@ -1,0 +1,70 @@
+﻿@page "/documents/{FileName}"
+@using BlazorIA.RAG.Services
+@using Markdig
+@inject IMarkdownRepository MarkdownRepository
+
+<PageTitle>@PageTitle</PageTitle>
+
+@if (isLoading)
+{
+    <p>Loading document...</p>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger" role="alert">
+        @error
+    </div>
+}
+else
+{
+    <div class="markdown-container">
+        @((MarkupString)htmlRenderized)
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string FileName { get; set; } = default!;
+
+    private bool isLoading = true;
+    private string? error;
+    private string htmlRenderized = string.Empty;
+    private string PageTitle => string.IsNullOrWhiteSpace(FileName)
+        ? "Documento"
+        : FileName;
+
+    private static readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .Build();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        error = null;
+        htmlRenderized = string.Empty;
+
+        try
+        {
+            var DecodedFileName = Uri.UnescapeDataString(FileName);
+
+            var markdown = await MarkdownRepository
+                .GetContentByFileName(DecodedFileName);
+
+            if (string.IsNullOrWhiteSpace(markdown))
+            {
+                error = $"File not found '{DecodedFileName}'.";
+                return;
+            }
+
+            htmlRenderized = Markdown.ToHtml(markdown, pipeline);
+        }
+        catch (Exception ex)
+        {
+            error = $"An error happened while loading the document: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

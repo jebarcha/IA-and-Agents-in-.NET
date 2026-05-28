@@ -1,4 +1,4 @@
-@page "/"
+@page "/chat-rag"
 @using BlazorIA.DTOs
 @using BlazorIA.Services.Chatbots
 @using BlazorIA.Utils
@@ -6,14 +6,47 @@
 @inject IJSRuntime JS
 
 <div class="chat-wrapper">
-    <h3 class="chat-title">Chat with AI</h3>
+    <h3 class="chat-title">Chat over internal documents (RAG)</h3>
 
     <div class="chat-messages" @ref="messagesContainer">
         @foreach (var message in ChatSession.Conversation)
         {
             <div class="message @GetCSSClass(message.Role)">
                 <div class="message-header">@GetLabel(message.Role)</div>
-                <div class="message-body">@message.Text</div>
+                <div class="message-body">
+                    @if (string.IsNullOrEmpty(message.Text))
+                    {
+                        <div class="typing-indicator">
+                            <div class="typing-dots" aria-label="La IA está escribiendo" role="status">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    } else
+                    {
+                        @message.Text
+                    }
+                </div>
+
+                @if (message.MentionedFiles.Any())
+                {
+                    <div class="mensaje-citas">
+                        <div class="citas-titulo">Fuentes</div>
+
+                        <div class="citas-lista">
+                            @foreach (var file in message.MentionedFiles.DistinctBy(x => x.FileName))
+                            {
+                                <a class="cita-card"
+                                       href="@($"/documents/{Uri.EscapeDataString(file.FileName)}")">
+                                    <div class="cita-card-titulo">@file.FileName</div>
+                                    <div class="cita-card-subtitulo">Show document</div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
             </div>
         }
 
@@ -89,7 +122,7 @@
 
 @code {
 
-    [Inject(Key = "chat")]
+    [Inject(Key = "chat-rag")]
     public IChatbot ChatSession { get; set; } = null!;
 
     private readonly ChatInputModel model = new();

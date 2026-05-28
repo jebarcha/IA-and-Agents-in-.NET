@@ -1,10 +1,14 @@
 using BlazorIA.Components;
 using BlazorIA.Data;
+using BlazorIA.RAG.Chatbots;
+using BlazorIA.RAG.Services;
 using BlazorIA.Services;
 using BlazorIA.Services.Chatbots;
 using BlazorIA.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
+using Microsoft.SemanticKernel.Connectors.InMemory;
+using OpenAI.Embeddings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +22,29 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IPersonService, PersonService>();
 
-builder.Services.AddScoped<IChatbot, RealChatbot>();
+builder.Services.AddKeyedScoped<IChatbot, RealChatbot>("chat");
+builder.Services.AddKeyedScoped<IChatbot, ChatbotRag>("chat-rag");
 
+builder.Services.AddSingleton<InMemoryDocumentService>();
+builder.Services.AddSingleton<InMemoryVectorStore>();
+
+builder.Services.AddSingleton<IndexRagAzureSearchService>();
+builder.Services.AddScoped<IVectorStore, VectorStoreClientAzureSearch>();
+
+builder.Services.AddTransient<IMarkdownRepository, MarkdownLocalRepository>();
+
+builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var apiKey = configuration["ANTHROPIC_KEY"]!;
+    var modelEmbeddings = configuration["MODEL_GENERATE_EMBEDDINGS"];
+
+    var client = new EmbeddingClient(modelEmbeddings, apiKey);
+    return client.AsIEmbeddingGenerator();
+});
+
+//builder.Services.AddSingleton<IRagService, RagMemoryService>();
+builder.Services.AddSingleton<IRagService, RAGAzureSearchService>();
 
 builder.Services.AddTransient<IWeatherService, OpenWeatherService>();
 builder.Services.AddTransient<ConditionEvaluatorService>();
