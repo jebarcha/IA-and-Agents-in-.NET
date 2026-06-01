@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="BlazorIA/BlazorIA.csproj" />
   <Project Path="FirstChatbox/FirstChatbox/FirstChatbox.csproj" />
+  <Project Path="MCPServer/MCPServer.csproj" Id="60f62db6-eb4c-46bf-b417-63bcfa4f0aaa" />
 </Solution>
