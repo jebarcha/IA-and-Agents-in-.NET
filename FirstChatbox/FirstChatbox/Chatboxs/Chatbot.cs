@@ -42,7 +42,7 @@ internal class Chatbot
             chatHistory.Add(new ChatMessage(role: ChatRole.User, userInput));
 
             Console.WriteLine();
-            Console.Write($"IA:");
+            Console.Write($"IA: ");
 
             while (true)
             {

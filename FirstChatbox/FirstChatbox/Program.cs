@@ -9,9 +9,12 @@ Utils.LoadEnvironmentVars();
 // dotnet run -- openai gpt-5.4-nano
 // dotnet run -- claude claude-haiku-4-5
 
-var provider = args.Length > 0 ? args[0].ToLowerInvariant() : "claude";
-var defaultModel = provider == "openai" ? "gpt-5.4-nano" : "claude-haiku-4-5";
-var model = args.Length > 1 ? args[1] : defaultModel;
+//var provider = args.Length > 0 ? args[0].ToLowerInvariant() : "claude";
+//var defaultModel = provider == "openai" ? "gpt-5.4-nano" : "claude-haiku-4-5";
+//var model = args.Length > 1 ? args[1] : defaultModel;
+
+var provider = "ollama";
+var model = "qwen3.5:2b";
 
 Console.WriteLine($"{provider}: {model}");
 

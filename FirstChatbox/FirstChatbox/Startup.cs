@@ -4,6 +4,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OllamaSharp;
 
 namespace FirstChatbox;
 
@@ -32,6 +33,7 @@ internal static class Startup
                 {
                     ApiKey = AnthropicKey
                 }.AsIChatClient().AsBuilder().ConfigureOptions(c => c.ModelId = model ?? "claude-haiku-4-5").Build(),
+                "ollama" => new OllamaApiClient("http://localhost:11434", model ?? "qwen3.5:2b"),
                 _ => throw new ArgumentException($"Unknown provider {provider}")
             };
 

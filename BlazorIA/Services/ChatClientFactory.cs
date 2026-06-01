@@ -1,6 +1,7 @@
 ﻿using Anthropic;
 using BlazorIA.Utils;
 using Microsoft.Extensions.AI;
+using OllamaSharp;
 
 namespace BlazorIA.Services
 {
@@ -10,6 +11,7 @@ namespace BlazorIA.Services
         {
             var openAIKey = configuration.GetValue<string>("OPENAI_KEY");
             var anthropicKey = configuration.GetValue<string>("ANTHROPIC_KEY");
+            var urlOllama = configuration.GetValue<string>("OLLAMA_ENDPOINT")!;
 
             var provider = AIModels.GetProvider(model);
 
@@ -20,6 +22,7 @@ namespace BlazorIA.Services
                 {
                     ApiKey = anthropicKey
                 }.AsIChatClient().AsBuilder().ConfigureOptions(c => c.ModelId = model ?? "claude-haiku-4-5").Build(),
+                "ollama" => new OllamaApiClient(urlOllama, model ?? "qwen3.5:2b"),
                 _ => throw new ArgumentException($"Unknown provider: {provider}")
             };
 

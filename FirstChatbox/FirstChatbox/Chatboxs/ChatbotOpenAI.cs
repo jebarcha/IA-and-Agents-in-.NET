@@ -53,7 +53,7 @@ internal class ChatbotOpenAI
             chatHistory.Add(new ChatMessage(role: ChatRole.User, userInput));
 
             Console.WriteLine();
-            Console.Write($"{model} IA:");
+            Console.Write($"{model} IA: ");
 
             await foreach (var fragment in client.GetStreamingResponseAsync(chatHistory))
             {

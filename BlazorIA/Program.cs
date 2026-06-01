@@ -8,7 +8,7 @@ using BlazorIA.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel.Connectors.InMemory;
-using OpenAI.Embeddings;
+using OllamaSharp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,11 +36,14 @@ builder.Services.AddTransient<IMarkdownRepository, MarkdownLocalRepository>();
 builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
-    var apiKey = configuration["ANTHROPIC_KEY"]!;
-    var modelEmbeddings = configuration["MODEL_GENERATE_EMBEDDINGS"];
+    //var apiKey = configuration["ANTHROPIC_KEY"]!;
+    var ulrOllama = configuration["OLLAMA_ENDPOINT"]!;
+    var modelEmbeddings = configuration["MODEL_GENERATE_EMBEDDINGS"]!;
 
-    var client = new EmbeddingClient(modelEmbeddings, apiKey);
-    return client.AsIEmbeddingGenerator();
+    //var client = new EmbeddingClient(modelEmbeddings, apiKey);
+    //return client.AsIEmbeddingGenerator();
+    var client = new OllamaApiClient(ulrOllama, modelEmbeddings);
+    return client;
 });
 
 //builder.Services.AddSingleton<IRagService, RagMemoryService>();
